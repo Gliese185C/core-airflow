@@ -6,7 +6,7 @@ substitutions:
 
 
 options:
-  # Вариант А: GCP сам создаст бакет в регионе
+  # Option A: GCP сам создаст бакет в регионе
   defaultLogsBucketBehavior: REGIONAL_USER_OWNED_BUCKET
   # Или, вместо этого, явно указать свой бакет:
   # logsBucket: "gs://my-project-build-logs"
