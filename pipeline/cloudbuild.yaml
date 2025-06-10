@@ -1,0 +1,95 @@
+# cloudbuild.yaml
+steps:
+  # 0. Включить API
+  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+    id: 'enable-apis'
+    entrypoint: 'bash'
+    args:
+      - '-c'
+      - |
+        gcloud services enable container.googleapis.com \
+                                compute.googleapis.com \
+                                iam.googleapis.com \
+                                compute.googleapis.com \
+                                --project=${PROJECT_ID}
+
+  # 0.1 Зарезервировать глобальный статический IP (если ещё нет)
+  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+    id: 'reserve-ip'
+    entrypoint: 'bash'
+    args:
+      - '-c'
+      - |
+        if ! gcloud compute addresses describe airflow-ip --global >/dev/null 2>&1; then
+          echo "Резервируем статический IP airflow-ip..."
+          gcloud compute addresses create airflow-ip --global --project=${PROJECT_ID}
+        else
+          echo "IP airflow-ip уже зарезервирован."
+        fi
+
+  # 1. Создать кластер (если нужно)
+  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+    id: 'create-cluster'
+    entrypoint: 'bash'
+    args:
+      - '-c'
+      - |
+        CLUSTER=airflow-cluster; Z=europe-west1-b
+        if ! gcloud container clusters describe $CLUSTER --zone=$Z >/dev/null 2>&1; then
+          gcloud container clusters create $CLUSTER \
+            --zone $Z \
+            --machine-type e2-micro \
+            --num-nodes 1 \
+            --enable-ip-alias \
+            --project=${PROJECT_ID}
+        fi
+
+  # 2. Получить креды для kubectl/helm
+  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+    id: 'auth-gke'
+    entrypoint: 'bash'
+    args:
+      - '-c'
+      - |
+        gcloud container clusters get-credentials airflow-cluster \
+          --zone=europe-west1-b \
+          --project=${PROJECT_ID}
+
+  # 3. Сборка Docker-образа Airflow
+  - name: 'gcr.io/cloud-builders/docker'
+    id: 'docker-build'
+    args: ['build', '-t', 'gcr.io/${PROJECT_ID}/airflow:${SHORT_SHA}', '.']
+
+  # 4. Пуш в Container Registry
+  - name: 'gcr.io/cloud-builders/docker'
+    id: 'docker-push'
+    args: ['push', 'gcr.io/${PROJECT_ID}/airflow:${SHORT_SHA}']
+
+  # 5. Деплой через Helm с Ingress
+  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+    id: 'helm-deploy'
+    entrypoint: 'bash'
+    args:
+      - '-c'
+      - |
+        helm repo add apache-airflow https://airflow.apache.org || true
+        helm repo update
+
+        # Указываем параметры Ingress прямо через --set:
+        helm upgrade --install airflow apache-airflow/airflow \
+          --namespace airflow \
+          --create-namespace \
+          --values=airflow-values.yaml \
+          --set image.repository=gcr.io/${PROJECT_ID}/airflow \
+          --set image.tag=${SHORT_SHA} \
+          --set ingress.enabled=true \
+          --set ingress.ingressClassName=gce \
+          --set ingress.annotations."kubernetes\.io/ingress\.global-static-ip-name"=airflow-ip \
+          --set ingress.annotations."networking\.gke\.io/managed-certificates"=airflow-cert \
+          --set ingress.hosts[0].host=airflow.internal.domain.com \
+          --set ingress.hosts[0].paths[0].path="/*" \
+          --set ingress.hosts[0].paths[0].pathType=ImplementationSpecific
+
+# Образы для реестра
+images:
+  - 'gcr.io/${PROJECT_ID}/airflow:${SHORT_SHA}'
