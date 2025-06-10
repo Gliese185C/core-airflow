@@ -1,5 +1,10 @@
 # cloudbuild.yaml
 
+substitutions:
+  _CLUSTER: "airflow-cluster"
+  _ZONE:    "europe-west1-b"
+
+
 options:
   # Вариант А: GCP сам создаст бакет в регионе
   defaultLogsBucketBehavior: REGIONAL_USER_OWNED_BUCKET
@@ -45,9 +50,9 @@ steps:
       - '-c'
       - |
         CLUSTER=airflow-cluster; Z=europe-west1-b
-        if ! gcloud container clusters describe $CLUSTER --zone=$Z >/dev/null 2>&1; then
-          gcloud container clusters create $CLUSTER \
-            --zone $Z \
+        if ! gcloud container clusters describe ${_CLUSTER} --zone=${_ZONE} >/dev/null 2>&1; then
+          gcloud container clusters create ${_CLUSTER} \
+            --zone ${_ZONE} \
             --machine-type e2-micro \
             --num-nodes 1 \
             --enable-ip-alias \
