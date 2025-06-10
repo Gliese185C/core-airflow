@@ -1,4 +1,14 @@
 # cloudbuild.yaml
+
+options:
+  # Вариант А: GCP сам создаст бакет в регионе
+  defaultLogsBucketBehavior: REGIONAL_USER_OWNED_BUCKET
+  # Или, вместо этого, явно указать свой бакет:
+  # logsBucket: "gs://my-project-build-logs"
+  # Либо задать режим логирования:
+  # logging: CLOUD_LOGGING_ONLY   # (по умолчанию)
+  # logging: NONE                 # если не нужны логи в GCS
+
 steps:
   # 0. Включить API
   - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
