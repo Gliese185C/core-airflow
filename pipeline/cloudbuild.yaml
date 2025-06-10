@@ -2,7 +2,7 @@
 
 substitutions:
   _CLUSTER: "airflow-cluster"
-  _ZONE:    "europe-central2"
+  _ZONE:    "europe-west1"
 
 
 options:
