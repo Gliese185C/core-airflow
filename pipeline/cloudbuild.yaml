@@ -81,29 +81,28 @@ steps:
     args: ['push', 'gcr.io/${PROJECT_ID}/airflow:${SHORT_SHA}']
 
   # 5. Деплой через Helm с Ingress
-  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+  - name: 'gcr.io/cloud-builders/helm'
     id: 'helm-deploy'
-    entrypoint: 'bash'
     args:
-      - '-c'
-      - |
-        helm repo add apache-airflow https://airflow.apache.org || true
-        helm repo update
-
-        # Указываем параметры Ingress прямо через --set:
-        helm upgrade --install airflow apache-airflow/airflow \
-          --namespace airflow \
-          --create-namespace \
-          --values=airflow-values.yaml \
-          --set image.repository=gcr.io/${PROJECT_ID}/airflow \
-          --set image.tag=${SHORT_SHA} \
-          --set ingress.enabled=true \
-          --set ingress.ingressClassName=gce \
-          --set ingress.annotations."kubernetes\.io/ingress\.global-static-ip-name"=airflow-ip \
-          --set ingress.annotations."networking\.gke\.io/managed-certificates"=airflow-cert \
-          --set ingress.hosts[0].host=airflow.internal.domain.com \
-          --set ingress.hosts[0].paths[0].path="/*" \
-          --set ingress.hosts[0].paths[0].pathType=ImplementationSpecific
+      [
+      'upgrade',
+      '--install',
+      'airflow',
+      'apache-airflow/airflow',
+      '--namespace',
+      'airflow',
+      '--create-namespace',
+      '--values=airflow-values.yaml',
+      '--set=image.repository=gcr.io/${PROJECT_ID}/airflow',
+      '--set=image.tag=${SHORT_SHA}',
+      '--set=ingress.enabled=true',
+      '--set=ingress.ingressClassName=gce',
+      '--set=ingress.annotations."kubernetes\\.io/ingress\\.global-static-ip-name"=airflow-ip',
+      '--set=ingress.annotations."networking\\.gke\\.io/managed-certificates"=airflow-cert',
+      '--set=ingress.hosts[0].host=airflow.internal.domain.com',
+      '--set=ingress.hosts[0].paths[0].path="/*"',
+      '--set=ingress.hosts[0].paths[0].pathType=ImplementationSpecific'
+      ]
 
 # Образы для реестра
 images:
