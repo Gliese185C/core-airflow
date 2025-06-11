@@ -108,8 +108,9 @@ steps:
         helm upgrade --install airflow apache-airflow/airflow \
           --namespace airflow --create-namespace \
           --values=airflow-values.yaml \
-          --set image.repository=gcr.io/${PROJECT_ID}/airflow \
-          --set image.tag=${SHORT_SHA} \
+          --set image.airflow.repository=gcr.io/${PROJECT_ID}/airflow \
+          --set image.airflow.tag=${SHORT_SHA} \
+          --set images.airflow.pullPolicy=Always \
           --set ingress.enabled=true \
           --set ingress.ingressClassName=gce \
           --set ingress.annotations."kubernetes\\.io/ingress\\.global-static-ip-name"=airflow-ip \
