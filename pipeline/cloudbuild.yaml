@@ -111,6 +111,8 @@ steps:
           --set image.airflow.repository=gcr.io/${PROJECT_ID}/airflow \
           --set image.airflow.tag=${SHORT_SHA} \
           --set images.airflow.pullPolicy=Always \
+          --set dags.persistence.enabled=false \
+          --set dags.gitSync.enabled=false \
           --set ingress.enabled=true \
           --set ingress.ingressClassName=gce \
           --set ingress.annotations."kubernetes\\.io/ingress\\.global-static-ip-name"=airflow-ip \
