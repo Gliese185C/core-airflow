@@ -81,7 +81,7 @@ steps:
     args: ['push', 'gcr.io/${PROJECT_ID}/airflow:${SHORT_SHA}']
 
   # 5. Деплой через Helm с Ingress
-- name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
     id: 'helm-deploy'
     entrypoint: 'bash'
     args:
