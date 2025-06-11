@@ -1,7 +1,7 @@
 # cloudbuild.yaml
 
 substitutions:
-  _CLUSTER: "aks-dev-cluster"
+  _CLUSTER: "airflow-dev-cluster"
   _ZONE:    "europe-west1-b"
 
 
@@ -108,8 +108,8 @@ steps:
         helm upgrade --install airflow apache-airflow/airflow \
           --namespace airflow --create-namespace \
           --values=airflow-values.yaml \
-          --set image.airflow.repository=gcr.io/${PROJECT_ID}/airflow \
-          --set image.airflow.tag=${SHORT_SHA} \
+          --set images.airflow.repository=gcr.io/${PROJECT_ID}/airflow \
+          --set images.airflow.tag=${SHORT_SHA} \
           --set images.airflow.pullPolicy=Always \
           --set dags.persistence.enabled=false \
           --set dags.gitSync.enabled=false \
