@@ -1,4 +1,4 @@
-FROM apache/airflow:latest
+FROM apache/airflow:2.6.3-python3.9
 
 USER airflow
 
