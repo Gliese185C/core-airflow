@@ -7,3 +7,8 @@ alertmanager:
 
 prometheusRule:
   enabled: false
+
+webserver:
+  startupProbe:
+    enabled: false
+
