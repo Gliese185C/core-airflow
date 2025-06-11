@@ -66,7 +66,7 @@ steps:
     args:
       - '-c'
       - |
-        gcloud container clusters get-credentials airflow-cluster \
+        gcloud container clusters get-credentials ${_CLUSTER} \
           --zone=europe-west1-b \
           --project=${PROJECT_ID}
 
