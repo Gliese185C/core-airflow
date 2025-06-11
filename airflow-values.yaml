@@ -10,5 +10,7 @@ prometheusRule:
 
 webserver:
   startupProbe:
-    enabled: false
-
+    initialDelaySeconds: 30
+    periodSeconds:       10
+    failureThreshold:    12
+    timeoutSeconds:      5
