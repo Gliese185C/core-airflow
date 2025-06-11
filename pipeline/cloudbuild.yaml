@@ -107,6 +107,7 @@ steps:
         # 5) Запускаем сам деплой
         helm upgrade --install airflow apache-airflow/airflow \
           --namespace airflow --create-namespace \
+          --values=airflow-values.yaml \
           --set image.repository=gcr.io/${PROJECT_ID}/airflow \
           --set image.tag=${SHORT_SHA} \
           --set ingress.enabled=true \

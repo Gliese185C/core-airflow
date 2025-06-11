@@ -1,0 +1,9 @@
+# airflow-values.yaml
+metrics:
+  enabled: false
+
+alertmanager:
+  enabled: false
+
+prometheusRule:
+  enabled: false
