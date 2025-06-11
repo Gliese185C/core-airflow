@@ -81,20 +81,31 @@ steps:
     args: ['push', 'gcr.io/${PROJECT_ID}/airflow:${SHORT_SHA}']
 
   # 5. Деплой через Helm с Ingress
-  - name: 'alpine/helm:3.15.4'
+- name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
     id: 'helm-deploy'
     entrypoint: 'bash'
     args:
       - '-c'
       - |
-        # Добавляем и обновляем репозиторий чарта
+        set -euo pipefail
+
+        # 1) Устанавливаем Helm 3
+        curl -fsSL https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | bash
+
+        # 2) Убедимся, что плагин аутентификации для GKE на месте
+        gcloud components install gke-gcloud-auth-plugin --quiet || true
+
+        # 3) Получаем креды для kubectl/Helm
+        gcloud container clusters get-credentials ${_CLUSTER} \
+          --zone ${_ZONE} --project ${PROJECT_ID}
+
+        # 4) Регистрируем репозиторий и обновляем чарты
         helm repo add apache-airflow https://airflow.apache.org || true
         helm repo update
 
-        # Устанавливаем или обновляем релиз
+        # 5) Запускаем сам деплой
         helm upgrade --install airflow apache-airflow/airflow \
-          --namespace airflow \
-          --create-namespace \
+          --namespace airflow --create-namespace \
           --values=airflow-values.yaml \
           --set image.repository=gcr.io/${PROJECT_ID}/airflow \
           --set image.tag=${SHORT_SHA} \
